@@ -19,7 +19,7 @@ contract GEZY is Context, IBEP20, Ownable {
         _name = "GEZY BEP20 Token";
         _symbol = "GEZY";
         _decimals = 2;
-        _totalSupply = 10_000_000;
+        _totalSupply = 10_000_000_00;
         _balances[msg.sender] = _totalSupply;
 
         emit Transfer(address(0), msg.sender, _totalSupply);
