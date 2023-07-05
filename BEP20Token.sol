@@ -5,12 +5,8 @@ pragma solidity 0.8.19;
 import "./utils/Context.sol";
 import "./utils/IBep20.sol";
 import "./utils/Ownable.sol";
-import "./utils/SafeMath.sol";
-import "./utils/IBep20.sol";
 
 contract GEZY is Context, IBEP20, Ownable {
-    using SafeMath for uint256;
-
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -23,7 +19,7 @@ contract GEZY is Context, IBEP20, Ownable {
         _name = "GEZY BEP20 Token";
         _symbol = "GEZY";
         _decimals = 2;
-        _totalSupply = 0;
+        _totalSupply = 10_000_000;
         _balances[msg.sender] = _totalSupply;
 
         emit Transfer(address(0), msg.sender, _totalSupply);
@@ -113,10 +109,7 @@ contract GEZY is Context, IBEP20, Ownable {
         _approve(
             sender,
             _msgSender(),
-            _allowances[sender][_msgSender()].sub(
-                amount,
-                "BEP20: transfer amount exceeds allowance"
-            )
+            _allowances[sender][_msgSender()] - amount
         );
         return true;
     }
@@ -140,7 +133,7 @@ contract GEZY is Context, IBEP20, Ownable {
         _approve(
             _msgSender(),
             spender,
-            _allowances[_msgSender()][spender].add(addedValue)
+            _allowances[_msgSender()][spender] + addedValue
         );
         return true;
     }
@@ -166,10 +159,7 @@ contract GEZY is Context, IBEP20, Ownable {
         _approve(
             _msgSender(),
             spender,
-            _allowances[_msgSender()][spender].sub(
-                subtractedValue,
-                "BEP20: decreased allowance below zero"
-            )
+            _allowances[_msgSender()][spender] - subtractedValue
         );
         return true;
     }
@@ -225,11 +215,8 @@ contract GEZY is Context, IBEP20, Ownable {
         require(sender != address(0), "BEP20: transfer from the zero address");
         require(recipient != address(0), "BEP20: transfer to the zero address");
 
-        _balances[sender] = _balances[sender].sub(
-            amount,
-            "BEP20: transfer amount exceeds balance"
-        );
-        _balances[recipient] = _balances[recipient].add(amount);
+        _balances[sender] = _balances[sender] - amount;
+        _balances[recipient] = _balances[recipient] + amount;
 
         emit Transfer(sender, recipient, amount);
     }
@@ -246,8 +233,8 @@ contract GEZY is Context, IBEP20, Ownable {
     function _mint(address account, uint256 amount) internal {
         require(account != address(0), "BEP20: mint to the zero address");
 
-        _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+        _totalSupply = _totalSupply + amount;
+        _balances[account] = _balances[account] + amount;
         emit Transfer(address(0), account, amount);
     }
 
@@ -265,11 +252,8 @@ contract GEZY is Context, IBEP20, Ownable {
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "BEP20: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(
-            amount,
-            "BEP20: burn amount exceeds balance"
-        );
-        _totalSupply = _totalSupply.sub(amount);
+        _balances[account] = _balances[account] - amount;
+        _totalSupply = _totalSupply - amount;
         emit Transfer(account, address(0), amount);
     }
 
@@ -296,24 +280,6 @@ contract GEZY is Context, IBEP20, Ownable {
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
-    }
-
-    /**
-     * @dev Destroys `amount` tokens from `account`.`amount` is then deducted
-     * from the caller's allowance.
-     *
-     * See {_burn} and {_approve}.
-     */
-    function _burnFrom(address account, uint256 amount) internal {
-        _approve(
-            account,
-            _msgSender(),
-            _allowances[account][_msgSender()].sub(
-                amount,
-                "BEP20: burn amount exceeds allowance"
-            )
-        );
-        _burn(account, amount);
     }
 
     function withdrawToken(address _tokenContract, address account, uint256 amount)
